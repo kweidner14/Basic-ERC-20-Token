@@ -46,7 +46,7 @@ contract Mycelium is ERC20Interface {
     }
     
     
-    function transfer(address to, uint tokens) public override returns(bool success) {
+    function transfer(address to, uint tokens) public virtual override returns(bool success) {
         require(balances[msg.sender] >= tokens);
         
         balances[to] += tokens;
@@ -73,7 +73,7 @@ contract Mycelium is ERC20Interface {
     }
     
     
-    function transferFrom(address from, address to, uint tokens) public override returns (bool success) {
+    function transferFrom(address from, address to, uint tokens) public virtual override returns (bool success) {
          require(allowed[from][msg.sender] >= tokens);
          require(balances[from] >= tokens);
          
@@ -164,5 +164,22 @@ contract MyceliumICO is Mycelium {
         invest();
     }
 
+    function transfer(address to, uint tokens) public override returns (bool success) {
+        require(block.timestamp > tokenTradeStart);
+        Mycelium.transfer(to, tokens);
+        return true;
+    }
 
+    function transferFrom(address from, address to, uint tokens) public override returns (bool success) {
+        require(block.timestamp > tokenTradeStart);
+        Mycelium.transferFrom(from, to, tokens);
+        return true;
+    }
+
+    function burn() public returns(bool) {
+        ICOState = getCurrentState();
+        require(ICOState == State.afterEnd);
+        balances[founder] = 0;
+        return true;
+    }
 }
